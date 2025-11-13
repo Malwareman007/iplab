@@ -1,0 +1,32 @@
+import socket
+import rsa
+print("[1] Generating RSA key pair (public and private keys)...")
+(public_key, private_key) = rsa.newkeys(1024)
+print(f"[✔] RSA keys generated successfully.")
+print(f" Public Key (n): {public_key.n}")
+print(f" Public Key (e): {public_key.e}\n")
+print("[2] Creating TCP socket for RSA server...")
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print("[3] Binding socket to localhost:12346 ...")
+server_socket.bind(('localhost', 12346))
+print("[4] Listening for incoming connections...")
+server_socket.listen(1)
+print("[✔] RSA Server ready and waiting for a client.\n")
+conn, addr = server_socket.accept()
+print(f"[5] Connection established with {addr}")
+public_key_data = f"{public_key.n},{public_key.e}"
+print(f"[6] Sending public key to client: {public_key_data}")
+conn.send(public_key_data.encode())
+print("[✔] Public key sent successfully.\n")
+print("[7] Waiting for encrypted message from client...")
+cipher_data = conn.recv(4096)
+print(f"[8] Received ciphertext (bytes): {cipher_data[:50]}... [truncated
+for display]\n")
+print("[9] Decrypting message using private key...")
+decrypted_msg = rsa.decrypt(cipher_data, private_key).decode()
+print(f"[✔] Decryption complete. Message from client:
+'{decrypted_msg}'\n")
+print("[10] Closing connection...")
+conn.close()
+server_socket.close()
+print("[✔] RSA Server shut down successfully.")
